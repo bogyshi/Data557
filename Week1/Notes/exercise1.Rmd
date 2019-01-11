@@ -1,0 +1,204 @@
+---
+title: "exercise1"
+author: "Alexande Van Roijen"
+date: "January 9, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Problem 1
+
+```{r cars}
+set.seed(123)
+smallSample = (rnorm(10,0,1))
+hist(smallSample)
+qqnorm(smallSample)
+abline(0,1)
+```
+surprisingly, this does look rather normal! or at least the qqplot says so. The histogram does not look normal, more uniform if anything.
+
+```{r prob1}
+for(i in 1:20){
+  smallSample = (rnorm(10,0,1))
+  par(mfrow=c(1,2))
+  hist(smallSample)
+  qqnorm(smallSample)
+  abline(0,1)
+}
+```
+After generating 20 seperate instances, we see we were a bit lucky with the qqplot and it doesnt really come up to snuff.
+
+Problem 2
+```{r prob2}
+x = seq(-4,4,.01)
+plot(dt(x,3),type='l')
+lines(dnorm(x,0,1),type='l')
+```
+as we can see, there is a heavier tail and smaller and flatter peak for the t distribution
+
+Problem 3
+```{r prob3}
+tSample = rt(10,3)
+hist(tSample)
+qqnorm(tSample)
+abline(0,1)
+```
+Surpirisngly, it looks pretty normal via the qqplot, but not in the histogram, just like before
+
+Problem 4
+```{r prob4}
+n=100
+smallSample = (rnorm(n,0,1))
+tSample = rt(n,3)
+hist(smallSample)
+qqnorm(smallSample)
+abline(0,1)
+hist(tSample)
+qqnorm(tSample)
+abline(0,1)
+```
+We seem to have found a normal looking noramlly generated distrib, but not very true to the actual curve is the t distributed sample.
+
+Problem 5
+```{r prob5}
+sampleMeans = numeric(200)
+sampleSize = 10
+for(i in 1:200)
+{
+  sampleMeans[i]=mean(rnorm(sampleSize))
+}
+hist(sampleMeans)
+print(mean(sampleMeans))
+print((var(sampleMeans)))
+print(sqrt(var(sampleMeans)))
+print(1/sqrt(sampleSize))
+```
+
+Problem 6
+```{r prob6}
+sampleMeans = numeric(200)
+sampleSize = 40
+for(i in 1:200)
+{
+  sampleMeans[i]=mean(rnorm(sampleSize))
+}
+hist(sampleMeans)
+print(mean(sampleMeans))
+print((var(sampleMeans)))
+print(sqrt(var(sampleMeans)))
+print(1/sqrt(sampleSize))
+```
+
+Problem 7
+```{r prob7}
+print(1/.01)
+```
+by dividing the true variance by the standard error we desire, we see that 100 sample size is needed theoretically to achieve it.
+
+Problem 8
+```{r prob8}
+bernoulSample = rbinom(10,5,0.1)
+print((.1*.9)/(0.01**2))
+```
+In the above, we knew the standard error, which is the SD of the sample proportion, is 0.01, and then knew the true variance follows p*q. We simple invert, square, and solve for n
+Problem 9
+```{r prob9}
+expMeans = numeric(200)
+for(i in 1:200)
+{
+  expMeans[i] = mean(rexp(10,3))
+}
+hist(expMeans)
+qqnorm(expMeans)
+qqline(expMeans)
+```
+
+problem 10
+```{r prob10}
+print(mean(expMeans))
+print(var(expMeans))
+print(sqrt(var(expMeans)))
+print("versus theoreticals")
+print((1/3))
+print((1/9)/10)
+print(sqrt((1/9)/10))
+
+```
+
+They are pretty close!
+
+problem 11
+```{r prob11}
+print("problem number 5 repeated")
+sampleMeans = numeric(200)
+sampleSize = 40
+for(i in 1:200)
+{
+  sampleMeans[i]=mean(rnorm(sampleSize))
+}
+hist(sampleMeans)
+print(mean(sampleMeans))
+print((var(sampleMeans)))
+print("versus theoreticals")
+print(sqrt(var(sampleMeans)))
+print(1/sqrt(sampleSize))
+```
+problem 12
+```{r prob12}
+sampleMeans = numeric(200)
+sampleSize = 10
+for(i in 1:200)
+{
+  sampleMeans[i]=mean(rbinom(sampleSize,1,0.1))
+}
+hist(sampleMeans)
+sampleMeans = numeric(200)
+sampleSize = 40
+for(i in 1:200)
+{
+  sampleMeans[i]=mean(rbinom(n=sampleSize,size=1,prob=0.1))
+}
+hist(sampleMeans)
+
+sampleMeans = numeric(200)
+sampleSize = 100
+for(i in 1:200)
+{
+  sampleMeans[i]=mean(rbinom(n=sampleSize,size=1,prob=0.1))
+}
+hist(sampleMeans)
+```
+
+Problem 13
+```{r prob13}
+sampleMeans = numeric(200)
+sampleSize = 10
+for(i in 1:200)
+{
+  sampleMeans[i]=mean(rbinom(sampleSize,1,0.5))
+}
+hist(sampleMeans)
+sampleMeans = numeric(200)
+sampleSize = 40
+for(i in 1:200)
+{
+  sampleMeans[i]=mean(rbinom(n=sampleSize,size=1,prob=0.5))
+}
+hist(sampleMeans)
+
+sampleMeans = numeric(200)
+sampleSize = 100
+for(i in 1:200)
+{
+  sampleMeans[i]=mean(rbinom(n=sampleSize,size=1,prob=0.5))
+}
+hist(sampleMeans)
+```
+
+The n goes down with a p of .5. The reason being that our variance 
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
