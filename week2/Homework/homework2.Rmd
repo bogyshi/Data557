@@ -29,15 +29,15 @@ print(lower)
 ```
 
 For this hypothesis test, we are checking the following $H_0: \mu = 0$ if 
-$qt(0.975,15) = \frac{|\bar{X} - 0|}{\frac{s}{\sqrt(15)}}$
-where $s = se$ from above and $\bar{X} = sampleMean$ from above. plugging in everything we get 
+$qt(0.975,14) = \frac{|\bar{X} - 0|}{\frac{s}{\sqrt(15)}}$
+where $\bar{X} = sampleMean$ from above. plugging in everything we get 
 
 ```{r prob1.1b}
-print(sampleMean/(sampleSD/sqrt(15)))
+print(sampleMean/(se))
 print(widthFactor)
 ```
 
-We see this still agrees that we should reject the null that the mean is 0 as our CI does not contain 0 and our tabulated Z is greater than the critical value for a t distribution with a alpha of 0.05 and 15 degrees of freedom. This agrees with our solutions found in problem 2.2
+We see this still agrees that we should reject the null that the mean is 0 as our CI does not contain 0 and our tabulated Z is greater than the critical value for a t distribution with a alpha of 0.05 and 14 degrees of freedom. This agrees with our solutions found in problem 2.2. This is also know as a 1-sample t test.
 
 ###Problem 1.2
 
@@ -51,7 +51,7 @@ upper = se*2.14
 for(i in 1:numRepl)
 {
   if(allMeans[i]<lower || allMeans[i]>upper)
-  {
+  { 
     numOff = numOff+1
   }
 }
@@ -59,7 +59,7 @@ print(numOff/numRepl)
 
 ```
 
-In this example, I used a uniform distribution. However, in the previous problem I sampled from an incorrect distribution! (it didnt satisfy the variance requirement). Accordingly, I achieved a simulated type I error of 12%, while in this one it is much lower. Consequently ,this uniform distribution is doing a better job at simulating the data sampled. We can say this test is quite more valid as it simulates a type one error much closer to the true data we have.
+In this example, I used a uniform distribution. However, in the previous problem I sampled from an incorrect distribution! (it didn't satisfy the variance requirement). Accordingly, I achieved a simulated type I error of 12%, while in this one it is much lower. Consequently ,this uniform distribution is doing a better job at simulating the data sampled. We can say this test is quite more valid as it simulates a type one error much closer to the true data we have. Although, I would say it is still a bit too far off to accurately estimate the distribution for further tests, but its the best we have so far.
 
 
 ###Problem 1.3
@@ -69,7 +69,7 @@ hist(vals,breaks=seq(-5,11,1))
 ss=15
 numIteration=100
 allSamples = numeric(numIteration)
-allSamples=replicate(numIteration,mean(sample(c(-2.5,5),size=ss,replace=TRUE)))
+allSamples=replicate(numIteration,mean(sample(c(-3,5),size=ss,replace=TRUE)))
 SE = sqrt(15/ss)
 lower = -1.96*SE
 upper = 1.96*SE
@@ -85,7 +85,7 @@ print((numOutside/100))
 }
 ```
 
-I justified my sampling here using the visuals from the histogram. I "eye-balled" it to be around an even sampling from an average of -2.5 and 5. As we can see, and as was aforementioned, this was a bit aggressive and does not produce a very good type I error and is likely not a good distribution to emulate the original. However, I will say that I wasnt too far off.
+Inspired by my last attempt, I decided to change the bounds of my dichotomous sampling. Re-"eye balling" it from the histogram, I chose an average of -3 and 5. As we can see, and as was aforementioned, this was a bit aggressive and does not produce a very good type I error and is likely not a good distribution to emulate the original. However, I will say that I wasn't too far off.
 
 ###Problem 1.4
 ```{r prob1.4}
@@ -97,52 +97,81 @@ se = sampleSD/sqrt(dft)
 widthFactor = qt(0.975,dft-1)
 upper = sampleMean+widthFactor*se
 lower = sampleMean - widthFactor*se
-print(upper)
-print(lower)
-
-print(sampleMean/(sampleSD/sqrt(15)))
-print(widthFactor)
+print(paste("Upper CI Bound: ",upper,""))
+print(paste("Lower CI Bound: ",lower,""))
+print(paste("T value: ",sampleMean/se,""))
+print(paste("Crit value: ",widthFactor,""))
 ```
 
-Clearly, if we assume the 11 was in fact an error, we see that we can no longer reject the null hypothesis, both due to removing a high value away from zero and reducing our degrees of freedom by 1 once more. Thus extending the range of our confidence interval to include 0, and our hypothesis test falling below the critical value.
+Clearly, if we assume the 11 was in fact an error, we see that we can no longer reject the null hypothesis, both due to removing a high value away from zero and reducing our degrees of freedom by 1 once more. Thus extending the range of our confidence interval to include 0, and our t value falling below the critical value.
 
 ##Problem 2
 
 ###Problem 2.1
 
-I intially thought this could have been done using the CLT. Looking at the plots below, I was almost convinced the apply it, but I decided to avoid this attempt as it was a bit skewed and further inspection gave slightly different results.
+I initially thought this could have been done using the CLT. Looking at the plots below, there is certainly skew in the first histogram representing the distribution of proportions sampled. However, the z values approximated from these values look quite normal with a good distribution of those values. Note this only applies to the 500 level. For these first few problems, there will be some mention of this normal approximation. We will see how this wont apply in the case of only 100 samples.
 
 ```{r prob2Help}
-samples=rbinom(1000,500,.99)
-hist(samples)
-qqnorm(samples)
-qqline(samples)
-```
-$\frac{|\hat{p} - .99|}{\frac{\sigma}{\sqrt{n}}} > C$ where C is our critical Value.
-If we were to solve for X, we would have $n*|\bar{X}|<494$. We notice this is a one sided test. solving for $\bar{X}$ we get 
-$\hat{p} = .988$. We plug this in to get our SE $\sqrt{\frac{\hat{p}(1-\hat{p})}{n}} = 0.004869497$.
-With all this calculated, and plugging back in, we get the following crticial value
-```{r prob2.1}
+numSimu = 1000
 numSample = 500
 critP = 494/numSample
 p_knot = .99
+samples=replicate(numSimu,rbinom(10,numSample,p_knot))
+samples2=rbinom(numSimu,numSample,p_knot)
+hist(samples2)
+qqnorm(samples2)
+qqline(samples2)
+allMeans = apply(samples, MARGIN=2, FUN = mean)
+zvals = numeric(numSimu)
 trueSD = sqrt((p_knot*(1-p_knot)/numSample))
+for (i in 1:numSimu)
+{
+  zvals[i] = (((allMeans[i]/numSample)-p_knot)/trueSD)
+}
+hist(zvals)
+qqnorm(zvals)
+qqline(zvals)
+print(sum(zvals<0))
+print(sum(zvals>0))
+```
+
+If we were to assume the normal can be used to approximate our proportions from the binomial distribution,
+we would use the following to solve for our significance level:
+$\frac{|\hat{p} - .99|}{\frac{\sigma}{\sqrt{n}}} > C$ where C is our critical Value.
+If we were to solve for X, we would have $n*|\bar{X}|<494$. We notice this is a one sided test. solving for $\bar{X}$ we get 
+$\hat{p} = .988$. We plug this in to get our SE $\sqrt{\frac{\hat{p}(1-\hat{p})}{n}} = 0.00444$.
+With all this calculated, and plugging back in, we get the following critical value
+```{r prob2.1}
+numSample=500
+trueSD = sqrt((p_knot*(1-p_knot)/numSample))
+#trueSD = sqrt((.988*(1-.988)/numSample))
+altZ=(.988-p_knot)/(sqrt(p_knot*(1-p_knot)/numSample))
 ZVAL = (critP-p_knot)/trueSD
 print(ZVAL)
 print(pnorm(ZVAL))
 ```
-\bold{THE ABOVE WAS INCORRECTLY ASSUMED, SEE THE REAL VALUE BELOW}
+
+The results show a pretty terrible significance level of about 33%!
+$\mathbf{\text{However}}$ we will use the simpler results from the density of the binomial distribution we know this data comes from to determine the true significance level.
 
 ```{r prob2.1True}
 print(sum(dbinom(c(0:494),numSample,p_knot)))
 ```
 
-Thus we can see that we have an approximate 32% probability of ahcieveing a type I error, where we reject the Null hypothesis when it is in fact true. This is overall not very good
+Thus we can see that we have an approximate 38% probability of achieving a type I error, where we reject the Null hypothesis when it is in fact true. This is somewhat close to the normal approximation that was derived earlier, but still quite different. However, both results for the type one error are not very good.
 
 
 ###Problem 2.2
 
-No we want type I error very close to 0.05, so we must satisfy $P(\frac{|\hat{p} - .99|}{\frac{\sigma}{\sqrt{n}}} <-1.644854)$
+Now we want type I error very close to 0.05, so, if it were normal as I assumed prior,  $P(\frac{|\hat{p} - .99|}{\frac{\sigma}{\sqrt{n}}} <-1.644854)$
+```{r prob2.2normassump}
+cval = qnorm(0.05)
+res = (cval * trueSD)+.99
+print(res*numSample)
+```
+
+Under this assumption of a normal distribution, we would say if one were to miss 9 or more from the 500 samples, we would reject the null hypothesis when we shouldn't as close to 5% of the time as we possibly can. Now we will look at the results using the binomial distribution to determine the rejection region for this significance.
+
 ```{r prob2.2}
 for( i in 1:500)
 {
@@ -159,43 +188,69 @@ print(sum(dbinom(c(0:491),numSample,p_knot)))
 
 ```
 
-Accordingly, we see that we need to see more misses in our test in order to achieve this type I error. More precisely, we need to miss 490 out of 500 samples in order to have this confidence in rejecting the null hypothesis and only being wrong as close as possible to 5% of the time.
+Accordingly, we see that we need to see more misses in our test in order to achieve this type I error. More precisely, we need to miss 490 out of 500 samples in order to have this confidence in rejecting the null hypothesis and only being wrong as close as possible to 5% of the time. This is slightly different, but is significantly different than the normal approximation shown above.
 
 ###Problem 2.3
 If we got 490 out of 500 samples correctly identified, we would reject this hypothesis. We can calculate the p value below
 ```{r prob2.3}
-numSample = 500
-critP = 490/numSample
-p_knot = .99
-trueSD = sqrt((p_knot*(1-p_knot)/numSample))
-ZVAL = (critP-p_knot)/trueSD
-print(ZVAL)
-print(pnorm(ZVAL))
+print(sum(dbinom(c(0:490),numSample,p_knot)))
 ```
 
-This further confirms our statement as our p value is below the alpha level of 0.05.
+As we can see, and what was assumed before, we set the rejection region to include this exact value. Thus, we reject 490 out of 500 samples. We would have also rejected the null hypothesis if we were to follow the results from the normal distribution assumed prior.
 
-###Problem 2.4
-With a reduced sample size, we would expect to see a wider interval for our rejection region as our standard error will increase
-```{r prob2.4}
+###Another note on our sample size.
+By decreasing the sample size, as shown below, we will have an even more skewed distribution, showing that we can with even greater confidence not assume an approximate normal distribution, unlike the case of 500 samples which is much closer to a normal distribution.
+
+```{r prob2Helpns100}
+numSimu = 1000
 numSample = 100
 critP = 98/numSample
 p_knot = .99
+samples=replicate(numSimu,rbinom(10,numSample,p_knot))
+samples2=rbinom(numSimu,numSample,p_knot)
+hist(samples2)
+qqnorm(samples2)
+qqline(samples2)
+allMeans = apply(samples, MARGIN=2, FUN = mean)
+zvals = numeric(numSimu)
 trueSD = sqrt((p_knot*(1-p_knot)/numSample))
-step1 = qnorm(0.05)*trueSD
-step2 = step1+.99
-step3 = step2*numSample
-print(step3)
-ZVAL = (critP-p_knot)/trueSD
-print(ZVAL)
-print(pnorm(ZVAL))
+for (i in 1:numSimu)
+{
+  zvals[i] = (((allMeans[i]/numSample)-p_knot)/trueSD)
+}
+hist(zvals)
+qqnorm(zvals)
+qqline(zvals)
+print(sum(zvals<0))
+print(sum(zvals>0))
 ```
 
-As Expected, we see that our region proportion changed from less than .982 to .973, which is wider than our previous rejection region. Thus, our .98 proportion tested in 2.3 wont fall in the rejection and we do not have enough evidence to reject the null hypothesis. As aforementioned, this is due to the decreased number of samples causing or calculated standard error to increase and thus expanding the amount of allowable values in our acceptance region to maintain the same alpha level.
+
+###Problem 2.4
+With a reduced sample size, we would expect to see a wider interval for our rejection region as our standard error will increase
+
+```{r prob2.4}
+numSample2=100
+for( i in 1:numSample2)
+{
+  if(sum(dbinom(c(0:i),numSample2,p_knot))>0.05)
+  {
+    print(i-1)
+    break
+  }
+}
+
+print(sum(dbinom(c(0:95),numSample2,p_knot)))
+print(sum(dbinom(c(0:96),numSample2,p_knot)))
+print(sum(dbinom(c(0:97),numSample2,p_knot)))
+
+```
+
+As expected, we must drop 4 units, to 96, in order to have a number of samples such that the significance level is not greater than 0.05. Thus any value less than or equal to 96 would be rejected in this case. Comparing the change, 99 to 96 is about a 3 % decrease to meet the criteria, meanwhile, the change from 495 to 490 is only a 1% change.
 
 ###Problem 2.5
 The p value represents the probability that we would see a value of equal or greater in value than what we have already realized.
-We already calculated the values above, but to restate the calculation will be done below
+We already calculated the values above, but to restate; the calculation will be done below
 ```{r prob2.5}
 numSample = 100
 numSample2 = 500
@@ -207,11 +262,13 @@ sd2 = sqrt(sdtop/numSample2)
 testDiffs = samplep-truep
 zval1 = testDiffs/sd1
 zval2 = testDiffs/sd2
-print(pnorm(zval1))
-print(pnorm(zval2))
+#print(pnorm(zval1))
+#print(pnorm(zval2))
+print(sum(dbinom(c(0:490),numSample2,truep)))
+print(sum(dbinom(c(0:98),numSample,truep)))
 
 ```
-As stated previously, we see that our p values are below the type I error probability and not below it resepectively on their sample size. With a large sample size, we can be equally confident with the same typer I error within a smaller acceptance region, thus allowing to reject .98. However, with a 5 times decrease in our sample size, we can no long have such a narrow interval. These changing widths in interval widths reflect on our pvalues as our probability of seeing more extreme values than .98 are directly impacted by the width of these regions. The more narrow the region, the probability of seeing the same value or greater is much lower.
+As we expected, the reduced sample size is having a huge impact on our p values. Despite the sample proportions representing the same ratio, the p values are much different. In the case of 500 samples, we are below our significance level and would reject the null hypothesis. However, with the case of only 100 trials, we are not even close to the significance level and would fail to reject the null hypothesis. In general, with the reduced number of samples, the probability of seeing a more extreme value with less samples for the same proportion is much more likely due to the discrete nature of our distribution.
 
 ##Problem 3
 ```{r prob3}
@@ -222,7 +279,6 @@ iqs = iqData$IQ
 ```
 We are solving 
 $H_0: \mu = 100$ if $qt(0.975,n) = \frac{|\bar{X} - 100|}{\frac{s}{\sqrt(n)}}$ for $\bar{X}$
-mu is not working?
 
 ###Problem 3.1
 ```{r prob3.1a}
@@ -247,9 +303,8 @@ zval = (sampleMean - trueMean) / (dataSD/sqrt(n))
 print(zval)
 print(2*pt(zval,n-1))
 ```
-SHOULD WE USE SAMPLE OR REAL STANDARD DEVIATION?
 
-We see that our mean of iqs is outside of the rejection region at the 0.05 signifigance level and thus say we have enough evidence to reject the null hypothesis. Accordingly, our pvalue is also very very small, which makes sense as our mean is very far away from the rejection region. the probability of seeing a more extreme value is quite small.
+We see that our mean of iqs is outside of the rejection region at the 0.05 significance level and thus say we have enough evidence to reject the null hypothesis. Accordingly, our pvalue is also very very small, which makes sense as our mean is very far away from the rejection region. the probability of seeing a more extreme value is quite small.
 
 ###Problem 3.2
 WE are now going to assume that our sample mean is the null hypothesis in a way, and establishing our confidence interval around it and see what is the 2 sided 95% confidence interval that our true mean falls within the region.
@@ -263,7 +318,7 @@ print(upper)
 As we can see, under the 95% CI, we believe that the true mean should fall within this range, however, the mean of 100 does not fall within this range, which agrees with out previous conclusion.
 
 ###Problem 3.3
-By increasing the requirement of our confidence interval and similarly decreasing the signifigance level, we expect to see a wider range of our acceptance region and our confidence interval, as we are requiring the probability of us rejecting the null hypothesis when it is true to be even smaller. Similarly, for hte confidence interval, it will be larger as we want ot expand the chance of us finding the true mean within the interval.
+By increasing the requirement of our confidence interval and similarly decreasing the significance level, we expect to see a wider range of our acceptance region and our confidence interval, as we are requiring the probability of us rejecting the null hypothesis when it is true to be even smaller. Similarly, for the confidence interval, it will be larger as we want to expand the chance of us finding the true mean within the interval.
 ```{r prob3.3}
 twoSides = qt(0.995,n-1)
 lower = trueMean- ((twoSides*dataSD)/sqrt(n))
@@ -272,14 +327,14 @@ print(paste("Lower rejection region bound:" ,lower))
 print(paste("upper rejection region bound:" ,upper))
 sampleMean = mean(iqs)
 zval = (sampleMean - trueMean) / (dataSD/sqrt(n))
-print(paste("P value:" ,pnorm(zval)))
+print(paste("P value:" ,2*pt(zval,n-1)))
 lower = sampleMean- ((twoSides*dataSD)/sqrt(n))
 upper = sampleMean+ ((twoSides*dataSD)/sqrt(n))
 print(paste("Lower confidence interval bound:" ,lower))
 print(paste("Upper confidence interval bound:" ,upper))
 ```
 
-Looking at the output above, as exepected, the regions have expanded, but not enough to prevent us from rejecting the null hypothesis, suggesting a pvalue that is greater than the signifigance level, or having a confidence interval that does not have a high probability of including the true mean which does not contain 100.
+Looking at the output above, as expected, the regions have expanded, but not enough to prevent us from rejecting the null hypothesis, suggesting a pvalue that is greater than the significance level. Similarly, we have a wider confidence interval with a 99% chance of including the true mean, but 100 is still not within this interval.
 
 ###Problem 3.4
 ```{r prob3.4}
@@ -306,9 +361,10 @@ for(i in 1:numSimulations)
 print(mean(allConclusions))
 ```
 
-As expected, we see that the percentage of means that fall outside of our rejection region matches very closely with the signifigance level defined.
+As expected, we see that the percentage of means that fall outside of our rejection region matches very closely with the significance level defined.
 
 ###Problem 3.5
+fix this 2
 ```{r prob3.5}
 twoSides = qt(0.975,n-1)
 lower = trueMean- ((twoSides*dataSD)/sqrt(n))
@@ -329,7 +385,7 @@ for(i in 1:numSimulations)
 }
 print(1-mean(allConclusions))
 ```
-We have a power of 95.2% in the case of an alternative hypothesis of mean 95. This makes sense with our previous findings of the confidence interval and rejection region including only as low as 97, which menas many of these means will fall outside of this region, as to be expected.
+We have a power of ~96-97% in the case of an alternative hypothesis of mean 95. This makes sense with our previous findings of the confidence interval and rejection region including only as low as 96.6, which means many of these means will fall outside of this region, as to be expected.
 
 ###Problem 3.6
 ```{r prob3.6}
@@ -364,4 +420,4 @@ while(power >=0.9)
 }
 ```
 
-It appears that the closest whole number we can approximate as an alternative mean with power of at least .9 would be 96 or 95. If we allow for decimal places, we can say a mean of about 95.7 is the largest alternative mean we can achieve with a power of at least .9
+It appears that the closest whole number we can approximate as an alternative mean with power of at least .9 would be 95. If we allow for decimal places, we can say a mean of about 95.7 is the largest alternative mean we can achieve with a power of at least .9. However, as aforementioned, we cant and thus stick with our value of 95 as the largest number for our alternative hypothesis with a power of at least .9

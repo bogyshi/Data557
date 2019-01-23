@@ -135,7 +135,7 @@ print(lowerB)
 print(upperB)
 ```
 
-As  we can see, 100 s not within this 95% confidence interval on the sample mean using a standard error calculated using the theoretical SD. This is significant, as even if we consider the possibiity of a unlucky sampling, the variance and our standard error show that we are 95% confident that the true mean is not within this interval. Since 100 is outside of this interval, we can be concerned that perhaps there is something wrong with the children we have sampled outside of random chance.
+As  we can see, 100 is not within this 95% confidence interval on the sample mean using a standard error calculated using the theoretical SD. This is significant, as even if we consider the possibiity of a unlucky sampling, the variance and our standard error show that we are 95% confident that the true mean is not within this interval. Since 100 is outside of this interval, we can be concerned that perhaps there is something wrong with the children we have sampled outside of random chance, or perhaps something is wrong with our sampling.
 
 ###Problem 4
 The equation for the 95% confidence interval is $\bar{x} \pm se * 1.96$  
@@ -153,25 +153,38 @@ upperB = mean(iqs)+posD
 print(lowerB)
 print(upperB)
 ```
-We can see that the confidence interval is slightly smaller in this section, as the variance and according standard deviation are smaller than what is expected.
+We can see that the confidence interval is slightly smaller in this section, as the variance and according standard deviation are smaller in this sample than what is expected to be the case.
 
 ###Problem 6
 ```{r prob6}
-numSamples=1000
+numSamples=400
+attempts =c(2:1000)
+numAttempts = length(attempts)
+numContain=numeric(numAttempts)
+for(i in 1:numAttempts)
+{
+  samples = replicate(attempts[i],rnorm(n,100,15))
+  allSEs = apply(samples,FUN=confInterval,MARGIN=2,doTrueVar = T)
+  res = getResults(allSEs,100)
+  percentBelow = mean(res)*100
+  numContain[i] = (percentBelow)
+}
+plot(x=attempts,y=numContain,type="l")
+abline(h=95,col='red')
 samples = replicate(numSamples,rnorm(n,100,15))
 allSEs = apply(samples,FUN=confInterval,MARGIN=2,doTrueVar = TRUE)
 #print(allSEs)
 res = getResults(allSEs,100)
-#allSEs=lapply(allSEs, "[[", 1)
-#print(allSEs[,1]$lower)
-#percentOfTrue = sapply(allSEs,FUN=withinInterval,100)
+allSEs=lapply(allSEs, "[[", 1)
+percentOfTrue = sapply(allSEs,FUN=withinInterval,100)
 print(mean(res)*100)
 ```
-As we can see, there are no instances in which our interval includes the "true" population mean. I chose 100 as it seemed appropriate.
+
+After many simulations, it appears that the variance of coverage probability is satisfactorily reduced around 400 iterations. Clearly, we could continue going with more and more simulations, however, I believe 400 is more than generous. This indicates we do not have too much to worry as the 95% coverage probability seems to be a converging point for our simulations. Further there is no indication that the coverage probability is not around .95.
 
 ###Problem 7
 ```{r prob7}
-numSamples = 1000
+numSamples = 400
 samples = replicate(numSamples,rnorm(n,100,15))
 allSEs = apply(samples,FUN=confInterval,MARGIN=2,doTrueVar = FALSE)
 #print(allSEs)
@@ -182,7 +195,7 @@ res = getResults(allSEs,100)
 print(mean(res)*100)
 ```
 
-As we have already noticed, the Sample variance of the data is lower than the true variance, and thus the interval is smaller, and even more likely not to hold the true mean within it.
+Similar to before, we see a similar coverage probability, which is to be expected as the variance between our sample and the true variance arent too off from each other.
 
 ###Problem 8
 ```{r prob8, fig.height=3, fig.width=6}
@@ -193,7 +206,7 @@ qqnorm(allMeans)
 qqline(allMeans)
 ```
 
-It appears that the means are quite normally distributed, wth a mean around 100, as to be expected.
+It appears that the means are quite normally distributed, wth a mean around 100, as to be expected. I expect this as we sampled from a normal distribution with mean 100 and SD 15, and thus expected to get these types of means as a result.
 
 ###Problem 9
 ```{r prob9}
@@ -208,25 +221,26 @@ print(mean(allSEs))
 
 ```
 
-From each sample, we have a calculated standard error, looking at the mean of those standard errors, we expect that given our sample size from the population, each sampled mean should vary from each other by about 1.28 points. or at least, that is what most of the samples indicated. the standard deviation amongst the means of the samples is also indicative of this fact, representing from our samples, what is actually the case. Since they are close, we can see that our standard errors are quite indicative of the true variance between samples that is to be expected.
+From each sample, we have a calculated standard error, looking at the mean of those standard errors, we expect that given our sample size from the population, each sampled mean should vary from each other by about 1.33 points. or at least, that is what most of the samples indicated. the standard deviation amongst the means of the samples is also indicative of this fact, representing from our samples, what is actually the case. Since they are close, we can see that our standard errors are quite indicative of the true variance between samples, which is good, as we can place trust in using them instead of the true sd, which is often unavailable.
 
 ###Problem 10
 ``` {r prob10}
-numSamples=100
+numSamples=400
 iqSamples = replicate(numSamples,rnorm(n,90,15))
 allSEs = apply(iqSamples,FUN=confInterval,MARGIN=2,doTrueVar = T)
 res = getAltResults(allSEs,100)
 percentBelow = mean(res)*100
 print(percentBelow)
 ```
-Considering the size of our sample, it would take almost 8 standard erros to get up to 100 on the upper bound assuming a mean around 90. Basically, a lot would have to go wrong from this sampling to have an upper bound above 100.
+
+Considering the size of our sample, it would take almost 8 standard errors to get up to 100 on the upper bound assuming a mean around 90. Basically, a lot would have to go wrong from this sampling to have an upper bound above 100. Consequently, we can safely say that sampling from a normal distribution with mean 90 and SD 15 will rarely ever produce a mean around 100.
 
 ###Problem 11
 ``` {r prob11}
 numBelow=numeric(99)
 for(i in 2:100)
 {
-  numSamples=1000
+  numSamples=400
   iqSamples = replicate(numSamples,rnorm(i,90,15))
   allSEs = apply(iqSamples,FUN=confInterval,MARGIN=2,doTrueVar = T)
   res = getAltResults(allSEs,100)
@@ -236,7 +250,8 @@ for(i in 2:100)
 plot(x=c(2:100),y=numBelow,type="l")
 abline(h=90,col='red')
 ```
-We can study this, and we see that a sample size of about 25 or so will be satisfactor for a 90% below rate.
+
+We can study this, and we see that a sample size of about 25 or so will be satisfactory for a 90% below rate.
 
 ###Problem 12
 ```{r prob12}
@@ -246,12 +261,13 @@ estSE = sqrt(estProp*(1-estProp))/sqrt(n)
 print(estProp-1.96*estSE)
 print(estProp+1.96*estSE)
 ```
+
 we see that our confidence interval does not inclue .5, which is siginifigant, as that means the proportion of students above and below 100, which would be expected to be 50/50 for a normal centered around 100, is likely not the case for this sample of students.
 
 ###Problem 13
 Bernoulli sampling
 ```{r prob13}
-numSamples=1000
+numSamples=400
 props = replicate(numSamples,rbinom(n,1,.5))
 allSEs = calcPropSEs(props,n,numSamples)
 allProps = apply(props, MARGIN=2, FUN = mean)
@@ -260,16 +276,17 @@ print((numPass/numSamples)*100)
 #trueSEs = apply(props,margin=2,FUN=sd)
 #trueSEs = calcPropSEs(props,n)
 ```
+
 As we can see, we do just about achieve that 95% confidence interval, as we would expect.
 
 ###Problem 14
 ```{r prob14}
-par(mfrow=c(1,2))
 hist(allProps,main="histogram of simulated samples")
 qqnorm(allProps)
 qqline(allProps)
 ```
-This is more in line with what I would expect, a quite normal looking distribution, with perhaps a bit of skew. I may want to consider increasing the number of samples done.
+
+I was expecting a normal distribution, and it almost looks quite normal, however, there are some disturbances in the expected flow of the histograms supposed bell shape curvature. The qqplot does however display a rather indicative straight line of a normal distribution.
 
 ###Problem 15
 ```{r prob15}
@@ -280,14 +297,15 @@ qqline(allSEs)
 print(mean(allSEs))
 print(sd(allProps))
 ```
-Well, this is not what I was expecting! This is a heavily skewed distribution, and clearly not even close to normal. Reminds me of a log scale. However, the standard deviation of all the simulated proportions and the mean of the estimated SEs are quite close. Which is important, for the same reasons as listed in problem 9
+
+Well, this is not what I was expecting! This is a heavily skewed distribution, and clearly not even close to normal. Reminds me of a log scale(at least the qqplot does). The histogram more resembles some exponential growth with a boundary condition. However, the standard deviation of all the simulated proportions and the mean of the estimated SEs are quite close. Which is important, for the same reasons as listed in problem 9
 
 ###Problem 16
 ```{r prob16}
 numContain=numeric(99)
 for(i in 2:100)
 {
-  numSamples=1000
+  numSamples=400
   props = replicate(numSamples,rbinom(i,1,.5))
   allSEs = calcPropSEs(props,i,numSamples)
   allProps = apply(props, MARGIN=2, FUN = mean)
@@ -298,8 +316,11 @@ for(i in 2:100)
 plot(x=c(2:100),y=numContain,type="l")
 abline(h=95,col='red')
 ```
-It appears that a sample size of size 30 satisifies this requirement
+
+It appears that a sample size of size 40 satisifies this requirement
 
 ###Problem 17
-WEll we understand that the formula to calculate the standard error for a sample proportion is $\frac{\sqrt{\hat{p}*(1-\hat{p})}}{\sqrt{n}}=SE$. In order for our width, which is $2*SE$, to have a width of .1 or less, we must satisfy $2*\frac{\sqrt{\hat{p}*(1-\hat{p})}}{\sqrt{n}}\le0.1$. Solving for n, we get the following
-$n\ge \frac{10}{\hat{p}*(1-\hat{p})} = \frac{10}{\hat{p} - \hat{p}^2}$. If $\hat{p} = .5$ then $n\ge 40$ , as n approaches 0 or 1, this number approaches inifity.
+Well we understand that the formula to calculate the standard error for a sample proportion is $\frac{\sqrt{\hat{p}*(1-\hat{p})}}{\sqrt{n}}=SE$. In order for our width, which is $2*1.96*SE$, to have a width of .1 or less, we must satisfy $1.96*\frac{\sqrt{\hat{p}*(1-\hat{p})}}{\sqrt{n}}\le0.1$. Solving for n, we get the following
+$n\ge (10* 1.96*2*\sqrt{\hat{p}*(1-\hat{p}}))^2$. If $\hat{p} = .5$ then $n\ge 385$ , as n approaches 0 or 1, this number only decreases, thus, we are garunteed this theoretically at 385.
+
+NOTE: I apologize for any typos. there is no spell check in R markdown apparently. 

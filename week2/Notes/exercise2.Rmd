@@ -1,0 +1,118 @@
+---
+title: "exercise2"
+author: "Alexander Van Roijen"
+date: "January 16, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r prob1.1}
+upper = 4*1.96+80
+lower = -4*1.96+80
+print(upper)
+print(lower)
+```
+
+Using an alpha level of 0.05, you get 1.96 as the z statistic, then using the normal approximation to the binomial and solving, you get the rejection region above. Thus we do not reject the null hypothesis as 85 is not within the RR
+
+```{r prob1.2}
+lower = pbinom(72,100,0.80)
+upper = 1-pbinom(88,100,0.80)
+print(upper+lower)
+```
+
+This is quite close to the 0.05 type one error level we allowed in the normal distribution when determining the RR. The reason for the slight difference is the rounding required.
+
+```{r prob1.3}
+lower = pbinom(72,100,0.9)
+upper = 1-pbinom(88,100,0.9)
+print(upper+lower)
+```
+
+We see that our power is only 0.7 given our current sample size of 100.
+
+```{r prob1.4}
+phat = 85/100
+n=100
+SE = sqrt(phat*(1-phat)/n)
+print(phat-1.96*SE)
+print(phat+1.96*SE)
+```
+
+.8 is within CI, so null hypothesis is a plausible value to get from the sample. This is the duality we talked about. Confidence intervals and rejection regions should agree.
+
+```{r prob2.1}
+vals = c(-5, -2, -1, -1, 0, 0, 2, 3, 4, 4, 5, 5, 6, 6, 11)
+```
+
+The Null Hypothesis $H_0=\mu=0$ where $\mu =$ the average change in pollutant concentraion between samples seperated by one month. The mean change in pollutant concentration is zero.
+
+The alternative hypothesis $H_1=\mu\ne0$ which means that the average change in pollutant concentration seperated by one month is greater than or equal to one.
+
+```{r prob2.2}
+n=15
+SE = sqrt(15/n)
+lower = -1.96*SE
+upper = 1.96*SE
+polutantMean = (mean(vals))
+print(polutantMean)
+print(lower)
+print(upper)
+lowerE = -1*polutantMean
+upperE = 1*polutantMean
+lowerP = pnorm(lowerE,0,SE)
+upperP = 1-pnorm(upperE,0,SE)
+print(lowerP+upperP)
+
+```
+In conclusion, I would reject the null hypothesis as our simulated sample falls outside of our rejection region and our pvalue is less than the signifigance level provided.
+
+```{r prob2.3}
+print(polutantMean+upper)
+print(polutantMean+lower)
+```
+
+Our confidence interval does not include 0, thus this agrees with our rejection region and results from previous conclusion.
+This is range of plausible values for mean difference of aged and fresh sample.
+
+```{r prob2.4}
+hist(vals,breaks=seq(-5,11,1))
+ss=15
+numIteration=100
+allSamples = numeric(numIteration)
+allSamples=replicate(numIteration,mean(sample(c(-2.5,5),size=ss,replace=TRUE)))
+SE = sqrt(15/ss)
+lower = -1.96*SE
+upper = 1.96*SE
+numOutside=0
+for(i in 1:60)
+{
+  if(allSamples[i]>upper || allSamples[i]<lower)
+  {
+    numOutside=numOutside+1 
+  }
+}
+print((numOutside/100))
+```
+
+Apparently, i should just do a normal of assumed mean 0 and variance 15 according to null hypothesis 
+solve for bounds of uniform using the variance and mean constraints.
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
