@@ -1,0 +1,331 @@
+---
+title: "Exercise 3"
+author: "Alexander Van Roijen"
+date: "January 23, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r prob1}
+setwd("/home/bdvr/Documents/GitHub/Data557/week3/Notes/")
+data = read.csv('process.csv')
+lowtempvals = data[data$temp==50,]
+hightempvals = data[data$temp==100,]
+lowMeanYield = mean(lowtempvals$output)
+highMeanYield = mean(hightempvals$output)
+lowSD = sd(lowtempvals$output)
+highSD = sd(hightempvals$output)
+lowsize = length(lowtempvals$output)
+highsize = length(hightempvals$output)
+
+se = sqrt((lowSD**2)/lowsize + (highSD**2)/highsize)
+zscore = abs(lowMeanYield-highMeanYield)/se
+print(zscore)
+print(2*(1-pnorm(zscore)))
+
+absmd = abs(lowMeanYield-highMeanYield)
+lower = absmd -1.96 * se
+upper = absmd +1.96 * se
+print(lower)
+print(upper)
+```
+
+Clearly, there is a significant difference between these two populations, both noted by the p value and the confidence interval not including 0.
+
+
+```{r prob1.2}
+numSimu = 1000
+results = numeric(numSimu)
+for(i in 1:numSimu)
+{
+  as = rnorm(lowsize,mean=1000,sd=100)
+  bs = rnorm(highsize,mean=1000,sd=100)
+  sdas = sd(as)
+  sdbs = sd(bs)
+  absmd = abs(mean(as)-mean(bs))
+  se = sqrt((sdas**2)/lowsize + (sdbs**2)/highsize)
+  zscr = absmd/se
+  if(zscr< -1.96 | zscr > 1.96)
+  {
+    results[i]=1
+  }
+  else
+  {
+    results[i]=0
+  }
+}
+print(mean(results))
+```
+
+We have a signifigance level very close to 0.05 
+
+```{r prob1.3}
+numSimu = 1000
+results = numeric(numSimu)
+for(i in 1:numSimu)
+{
+  as = rnorm(lowsize,mean=10,sd=20)
+  bs = rnorm(highsize,mean=10,sd=20)
+  sdas = sd(as)
+  sdbs = sd(bs)
+  absmd = abs(mean(as)-mean(bs))
+  se = sqrt((sdas**2)/lowsize + (sdbs**2)/highsize)
+  zscr = absmd/se
+  if(zscr< -1.96 | zscr > 1.96)
+  {
+    results[i]=1
+  }
+  else
+  {
+    results[i]=0
+  }
+}
+print(mean(results))
+```
+
+We see that the results do not change, despite the change of the mean and variance, which is in line with what I expect as the resuling z value or test statistic will still follow a normal 0,1 distribution. since the sample size is large enough and the fact that we are talking about a difference. Thus it is invariant to the changes of mean and deviation as they subtract from each other.
+
+```{r prob1.4}
+numSimu = 10000
+lowsize = 30
+highsize = 30
+results = numeric(numSimu)
+for(i in 1:numSimu)
+{
+  as = rbinom(lowsize,size=1,p=0.3)
+  bs = rbinom(highsize,size=1,p=0.3)
+  sdas = sd(as)
+  sdbs = sd(bs)
+  absmd = abs(mean(as)-mean(bs))
+  se = sqrt((sdas**2)/lowsize + (sdbs**2)/highsize)
+  zscr = absmd/se
+  if(zscr< -1.96 | zscr > 1.96)
+  {
+    results[i]=1
+  }
+  else
+  {
+    results[i]=0
+  }
+}
+print(mean(results))
+```
+
+Still, despite using a binomial distribution, the results remain very similar, if anything, a bit too large
+
+```{r prob1.5a}
+numSimu = 1000
+results = numeric(numSimu)
+for(i in 1:numSimu)
+{
+  as = rnorm(5,mean=10,sd=20)
+  bs = rnorm(5,mean=10,sd=20)
+  sdas = sd(as)
+  sdbs = sd(bs)
+  absmd = abs(mean(as)-mean(bs))
+  se = sqrt((sdas**2)/5 + (sdbs**2)/5)
+  zscr = absmd/se
+  if(zscr< -1.96 | zscr > 1.96)
+  {
+    results[i]=1
+  }
+  else
+  {
+    results[i]=0
+  }
+}
+print(mean(results))
+```
+
+it appears that with a small ss our results become less true to the 0.05 level we looked for
+```{r prob1.5b}
+numSimu = 1000
+results = numeric(numSimu)
+for(i in 1:numSimu)
+{
+  as = rbinom(5,size=1,p=0.3)
+  bs = rbinom(5,size=1,p=0.3)
+  sdas = sd(as)
+  sdbs = sd(bs)
+  absmd = abs(mean(as)-mean(bs))
+  se = sqrt((sdas**2)/5 + (sdbs**2)/5)
+  zscr = absmd/se
+  if(zscr< -1.96 | zscr > 1.96)
+  {
+    results[i]=1
+  }
+  else
+  {
+    results[i]=0
+  }
+}
+print(mean(results))
+```
+
+as we can see rbinom doesnt work here as our dbinom can produce all zeros are all ones causing NAN for the se.
+
+Point being overall, that small sample sizes break down the normal distribution or z score should follow.
+
+```{r prob2.1}
+t.test(lowtempvals$output,hightempvals$output,var.equal=T)
+
+t.test(lowtempvals$output,hightempvals$output,var.equal=F)
+
+```
+
+As we can see, the results between all our different results are not too different. However, I would say that the use of the t distribution values is a better idea than using the normal values. I believe our sample sizes are just a bit too small and it would be better practice to use the d-dist values. as indicated by the slightly smaller RR displayed.
+
+```{r prob 2.2}
+newdata = data[c(1:45),]
+lowtempvals = newdata[newdata$temp==50,]
+hightempvals = newdata[newdata$temp==100,]
+lowMeanYield = mean(lowtempvals$output)
+highMeanYield = mean(hightempvals$output)
+lowSD = sd(lowtempvals$output)
+highSD = sd(hightempvals$output)
+lowsize = length(lowtempvals$output)
+highsize = length(hightempvals$output)
+
+se = sqrt((lowSD**2)/lowsize + (highSD**2)/highsize)
+zscore = abs(lowMeanYield-highMeanYield)/se
+print(zscore)
+print(2*(1-pnorm(zscore)))
+
+absmd = abs(lowMeanYield-highMeanYield)
+lower = absmd -1.96 * se
+upper = absmd +1.96 * se
+print(lower)
+print(upper)
+# we can see that the p value has increased and so has our interval gotten wider.
+
+nwt =t.test(lowtempvals$output,hightempvals$output,var.equal=T)
+
+wt = t.test(lowtempvals$output,hightempvals$output,var.equal=F)
+
+print(nwt)
+print(wt)
+```
+
+
+overall, we can see that our confidence intervals are varying much more in this case. the degrees of freedom differ by ten between the two sample t test and the welch test. However, the welch test has an overall better p value despite this fact.
+
+```{r prob 2.3}
+#80 is sd
+numSimu = 1000
+results = numeric(numSimu)
+resultsnw = numeric(numSimu)
+resultsw = numeric(numSimu)
+
+wlb = abs(wt$conf.int[2])
+wub = abs(wt$conf.int[1])
+nwlb = abs(nwt$conf.int[2])
+nwub = abs(nwt$conf.int[1])
+nwdf = 43
+wdf = wt$parameter
+lowerSize = 30
+upperSize = 15
+for(i in 1:numSimu)
+{
+  as = rnorm(lowerSize,mean=1000,sd=80)
+  bs = rnorm(upperSize,mean=1000,sd=20)
+  sdas = sd(as)
+  sdbs = sd(bs)
+  absmd = abs(mean(as)-mean(bs))
+  se = sqrt((sdas**2)/lowerSize + (sdbs**2)/upperSize)
+  zscr = absmd/se
+  if(zscr< -1.96 | zscr > 1.96)
+  {
+    results[i]=1
+  }
+  else
+  {
+    results[i]=0
+  }
+  if(zscr< qt(0.025,nwdf)| zscr > (-1*qt(0.025,nwdf)))
+  {
+    resultsnw[i]=1
+  }
+  else
+  {
+    resultsnw[i]=0
+  }
+  if(zscr< qt(0.025,wdf)| zscr > (-1*qt(0.025,wdf)))
+  {
+    resultsw[i]=1
+  }
+  else
+  {
+    resultsw[i]=0
+  }
+}
+print(mean(results))
+print(mean(resultsw))
+print(mean(resultsnw))
+
+```
+
+our signfigance test show similar results, but the welch and equal variance tests have consistently slightly lower scores
+
+
+```{r prob 2.4}
+#80 is sd
+numSimu = 1000
+results = numeric(numSimu)
+resultsnw = numeric(numSimu)
+resultsw = numeric(numSimu)
+
+wlb = abs(wt$conf.int[2])
+wub = abs(wt$conf.int[1])
+nwlb = abs(nwt$conf.int[2])
+nwub = abs(nwt$conf.int[1])
+nwdf = 43
+wdf = wt$parameter
+lowerSize = 30
+upperSize = 15
+for(i in 1:numSimu)
+{
+  as = rnorm(lowerSize,mean=1000,sd=20)
+  bs = rnorm(upperSize,mean=1000,sd=80)
+  sdas = sd(as)
+  sdbs = sd(bs)
+  absmd = abs(mean(as)-mean(bs))
+  se = sqrt((sdas**2)/lowerSize + (sdbs**2)/upperSize)
+  zscr = absmd/se
+  if(zscr< -1.96 | zscr > 1.96)
+  {
+    results[i]=1
+  }
+  else
+  {
+    results[i]=0
+  }
+  if(zscr< qt(0.025,nwdf)| zscr > (-1*qt(0.025,nwdf)))
+  {
+    resultsnw[i]=1
+  }
+  else
+  {
+    resultsnw[i]=0
+  }
+  if(zscr< qt(0.025,wdf)| zscr > (-1*qt(0.025,wdf)))
+  {
+    resultsw[i]=1
+  }
+  else
+  {
+    resultsw[i]=0
+  }
+}
+print(mean(results))
+print(mean(resultsw))
+print(mean(resultsnw))
+# should get .15 for equal var
+# .04 for welch
+# and .0278 for z test
+# these differences have to do with the switch of who has the large SD, is it with larger SS or smaller SS
+```
+
+Consistently, we see higher alpha scores, with the lowest seeming to below where and equal variance assumption is not

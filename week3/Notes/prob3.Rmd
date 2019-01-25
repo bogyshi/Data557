@@ -1,0 +1,62 @@
+---
+title: "exercise3Prob3"
+author: "Alexander Van Roijen, Riley Waters, Frank Chen, John Mahoney"
+date: "January 24, 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r prob3}
+setwd("/home/bdvr/Documents/GitHub/Data557/week3/Notes/")
+data = read.csv('process.csv')
+lowtempvals = data[data$temp==50,]
+hightempvals = data[data$temp==100,]
+
+
+# We want to know the power of our experiment to detect a mean value of 95.
+
+power_simulation <- function(sig_level) {
+
+  N <- 200
+
+  n <- 85
+
+  sim_result <- replicate(N, {
+
+    sim_data <- rnorm(n, mean=75, sd=214)
+
+    Z <- mean(sim_data)/(sd(sim_data)/sqrt(n))
+
+    abs(Z)>sig_level
+
+  })
+
+  return(mean(sim_result))
+
+}
+
+set.seed(0)
+
+
+
+
+
+power_simulation(qt(0.975,34))
+```
+
+We attempted sample sizes 30, 45, 80, 90, and 100. 85 appears to be the closest at the moment. Thus we recommend a sample size of 85 as without true data, we believe using the prior data influences this result best. We got the mean of sd of 214 by examining the histogram of our mean differences from the data we do have. and used the mean of 75 from the problem
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
