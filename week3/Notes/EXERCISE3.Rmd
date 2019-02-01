@@ -170,9 +170,12 @@ as we can see rbinom doesnt work here as our dbinom can produce all zeros are al
 Point being overall, that small sample sizes break down the normal distribution or z score should follow.
 
 ```{r prob2.1}
-t.test(lowtempvals$output,hightempvals$output,var.equal=T)
+res1 =t.test(lowtempvals$output,hightempvals$output,var.equal=T)
 
-t.test(lowtempvals$output,hightempvals$output,var.equal=F)
+res2 = t.test(lowtempvals$output,hightempvals$output,var.equal=F)
+print(res1)
+print(res2)
+print(res2$p.value)
 
 ```
 
