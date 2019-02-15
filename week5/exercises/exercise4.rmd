@@ -1,0 +1,125 @@
+---
+title: "Exercise4"
+author: "Alexander Van Roijen"
+date: "February 6, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+```{r prob1.1}
+processData = read.csv('defects.csv')
+print(names(processData))
+chars = c('A','B','C','D')
+as = processData[processData$Method=='A',][,'Weight']
+bs = processData[processData$Method=='B',][,'Weight']
+cs = processData[processData$Method=='C',][,'Weight']
+ds = processData[processData$Method=='D',][,'Weight']
+for(i in 1:4)
+{
+  allData = processData[processData$Method==chars[i],][,'Weight']
+  tempVar = var(allData)
+  tempMean = mean(allData)
+  ss = length(allData)
+  print(ss)
+  bound = qt(0.975,ss)
+  tstat = abs(tempMean-10)/sqrt((tempVar)/ss)
+  print(2*(1-pt(tstat,ss-1)))
+}
+```
+
+```{r prob1.2}
+#Shall I do welch or equal variance?
+for(i in 1:4)
+{
+  j = i+1
+  Data1 = processData[processData$Method==chars[i],][,'Weight']
+  while(j<5)
+  {
+    print(chars[i])
+    print(chars[j])
+    Data2 = processData[processData$Method==chars[j],][,'Weight']
+
+    print(t.test(Data1,Data2,var.equal=F))
+    j=j+1
+  }
+}
+#running the above with bonefornni correction is somtin else.
+```
+
+```{r prob2}
+ftest = aov(Weight ~ Method,data=processData)
+print(names(ftest))
+print(ftest$call)
+print(summary(ftest))
+```
+
+As a result, we can see that the ftest states we fail to find evidence such that the means between all four groups are different.
+However, it is important to note that we are assuming EQUAL VARIANCE here, which may not be actually true.
+
+```{r prob3}
+residuals = ftest$residuals
+#note the above residuals are in the same order as the dataframe groups which allow us to do the plotting below
+boxplot(residuals~Method,data=processData)
+hist(residuals,breaks=15)
+#use curve function here if desired
+qqnorm(residuals)
+qqline(residuals)
+print(tapply(processData$Weight,processData$Method,length))
+#plyr or dplyr package, data.table
+print(tapply(processData$Weight,processData$Method,sd))
+
+```
+
+In conclusion, it appears that their variances are not the same, which is clearly an important assumption.
+
+```{r prob4}
+tapply(processData$Weight,processData$Method,hist)
+#I will assume normal distributions wtih different variances and means based on the sample mean.
+numSimu = 1000
+results = numeric(numSimu)
+aMean = mean(as)
+bMean = mean(bs)
+cMean = mean(cs)
+dMean = mean(ds)
+asd = sd(as)
+bsd = sd(bs)
+csd = sd(cs)
+dsd = sd(ds)
+lens = tapply(processData$Weight,processData$Method,length) 
+alen = lens[1]
+blen = lens[2]
+clen = lens[3]
+dlen = lens[4]
+for(i in 1:numSimu)
+{
+  simData = processData
+  aSim = rnorm(alen,10,asd)
+  bSim = rnorm(blen,10,bsd)
+  cSim = rnorm(clen,10,csd)
+  dSim = rnorm(dlen,10,dsd)
+  simData$Weight[simData$Method=='A']=aSim
+  simData$Weight[simData$Method=='B']=bSim
+  simData$Weight[simData$Method=='C']=cSim
+  simData$Weight[simData$Method=='D']=dSim
+  result = aov(Weight~Method,data=simData)
+  store = summary(result)
+  pval = store[[1]][["Pr(>F)"]][1]
+  if(pval<=0.05)
+  {
+    results[i]=1
+  }
+  else
+  {
+    results[i]=0
+  }
+  
+}
+print(mean(results))
+```
+
+NOTE WE MAY WANT TO TRY EQUAL VARIANCES AND NON EQAUL VARIANCES DEPENDING ON THE PERMUTATIONS OF OUR DATA.
+EX, if the data in some distrib looks somewhat non normal and generate data differently, then we may wnat ot test the sensitivity of our anova to this different distrbs to better determine results. 

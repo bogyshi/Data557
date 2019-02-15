@@ -1,0 +1,38 @@
+---
+title: "Homework 6"
+author: "Alexander Van Roijen"
+date: "February 14, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup}
+cellData = read.csv("cells.csv")
+salesData = read.csv("Sales.csv")
+```
+
+```{r prob1.1}
+fTest = aov(count1~factor(dose),data=cellData)
+print(summary(fTest))
+```
+
+We can see that there is some difference between the means of their post treatment cell count. Furhter, due to the non-observational nature of this study, we can conclude that it is in fact the level of dosage that is impacting this difference
+
+```{r prob1.2}
+flmTest = lm(count1~dose,data=cellData)
+print(summary(flmTest))
+```
+
+Again, we can see that the dose is a significant parameter in our regression, and in further detail, tells us there is a positive linear relationship between post treament cell count and doseage. This follows in accordancy with our anova test. In more concrete terms, our linear regression model states that for every unit change in dose, we expect to seea 5.732 mean increase in our cell count.
+
+```{r prob1.3}
+fwsTest = aov(count1~factor(dose)+factor(sex),data=cellData)
+print(summary(fwsTest))
+flmwsTest = lm(count1~dose+sex,data=cellData)
+print(summary(flmwsTest))
+```
+
+According to both results, sex has no significane when presented at the same time as our doseage level, despite the lack of intereaction listed. However, we do see our p-value decrease slightly, in both cases, meaning that some variation was explained by the sex regardless of its lack of significance. I will note this change is only slight.

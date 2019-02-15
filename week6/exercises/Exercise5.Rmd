@@ -1,0 +1,72 @@
+---
+title: "Exercise 5"
+author: "Alexander Van Roijen"
+date: "February 13, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Problem 1
+
+```{r prob1.1}
+wineData = read.csv("wine.csv")
+alcData = wineData[c("alc","quality")]
+aTest = aov(quality~factor(alc),data=wineData)
+print(summary(aTest))
+```
+
+It appears there is a difference in the average quality of the wine depending on the level of alcohol used. Considering the control of the experiment and the randomization, we can take a further step and state that there is some causal effect on the quality of the wine based on the alcohol level.
+
+```{r prob1.2}
+phTest = aov(quality~factor(ph),data=wineData)
+#IT IS IMPORTANT TO USE FACTOR HERE IN PARTICULAR
+print(summary(phTest))
+```
+
+It appears there is no evidence to suggest a difference in mean quality levels given different ph levels.
+
+```{r prob1.3}
+almTest = lm(quality~alc,data=wineData)
+print(summary(almTest))
+plot(y=wineData$quality,x=wineData$alc)
+abline(almTest)
+```
+
+From the graphic and summary, we can see there is a strong positive linear trend displayed between the three different alcohol levels and rated quality of the wine. This agrees that there is signifigance with the anova test.
+
+```{r prob1.4}
+phlmTest = lm(quality~ph,data=wineData)
+print(summary(phlmTest))
+plot(y=wineData$quality,x=wineData$ph)
+abline(phlmTest)
+```
+
+Again, we can see that our lm agrees with our ANOVA test and shows little to no signifigant correlation between ph levels and quality.
+
+
+###Problem 2
+
+```{r prob2.1}
+noInterTest = aov(quality~factor(alc)+factor(ph),wineData)
+print(summary(noInterTest))
+```
+
+They are both significant in this case, as we can tell by te very high p-values. This is due to a variety of reasons, but for this particular example, we can think of it as the noise being dampened as specified by the 2 way anova equation listed in the slides.
+
+```{r prob2.2}
+lmNITest = lm(quality ~ alc + ph,wineData)
+print(summary(lmNITest))
+```
+
+Similar to our anova test, we are seeing significant p values for our coefficients in regards to their impact on quality.
+
+```{r prob2.3}
+noInterTest = aov(quality~factor(alc)*factor(ph),wineData)
+print(summary(noInterTest))
+```
+
+
+according to this anova test, we can see that they are still both significant, but not significane is seen for their interaction

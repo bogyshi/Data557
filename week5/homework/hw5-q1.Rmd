@@ -1,0 +1,133 @@
+---
+title: "Homework 5"
+author: "Alexander Van Roijen"
+date: "February 8, 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+###Authors: Alexander Van Roijen, Frank Chen, John Mahoney, Sam Miller, Vivek Kumar
+First, we decided to look at all possible 2 sample t-tests to get some potential intuition on the differences between groups.
+```{r prob1.1}
+processData = read.csv('defects.csv')
+print(names(processData))
+chars = c('A','B','C','D')
+as = processData[processData$Method=='A',][,'Defects']
+bs = processData[processData$Method=='B',][,'Defects']
+cs = processData[processData$Method=='C',][,'Defects']
+ds = processData[processData$Method=='D',][,'Defects']
+for(i in 1:4)
+{
+  j = i+1
+  Data1 = processData[processData$Method==chars[i],][,'Defects']
+  while(j<5)
+  {
+    print(chars[i])
+    print(chars[j])
+    Data2 = processData[processData$Method==chars[j],][,'Defects']
+
+    print(t.test(Data1,Data2,var.equal=F))
+    j=j+1
+  }
+}
+```
+
+We can see that their is quite a difference between group A and the other groups, but no real indication between all other pairings. Now let us conduct an F-test and see what comes up.
+
+```{r prob1aovtest}
+ftest = aov(Defects ~ Method,data=processData)
+print(summary(ftest))
+```
+
+As we can see, the F-test deems there is a significant enough differences between our population means.
+
+However, was this test valid?
+We will assume there is independence between samples and within samples, however that is not guaranteed. 
+Next thing we can look at is if the data have equal variances and then finally if they have normally distributed values.
+
+```{r prob1.2}
+boxplot(ftest$residuals~Method,data=processData)
+print(tapply(processData$Defects,processData$Method,sd))
+```
+
+The box plot doesn't help much as defects are discrete and mainly fall around zero.
+Looking at their standard deviations, we can see A has much lower standard deviation than the rest which may indicate non equal variances.
+
+Now lets look at distributions of their residuals to assess our normality distribution.
+```{r prob1.3, out.width='.49\\linewidth', fig.width=3, fig.height=3,fig.show='hold',fig.align='center'}
+par(mfrow=c(1,1)) 
+residFrame = data.frame(matrix(ncol = length(chars),nrow=75))
+colnames(residFrame) = chars
+for(i in 1:4)
+{
+  par(mfrow=c(1,1)) 
+  Data1 = c(processData[processData$Method==chars[i],][,'Defects'])
+  resids = (abs(Data1-mean(Data1)))
+  hist(resids,main=paste("resids for method ",chars[i],sep=""))
+}
+```
+
+Clearly, we can see that the residuals do not follow a normal distribution, it appears to be either a poisson distribution, exponential distribution, or perhaps a folded normal distribution. Lets simulate this to verify.
+
+```{r prob1.4}
+numSimu = 2000
+results = numeric(numSimu)
+aMean = mean(as)
+bMean = mean(bs)
+cMean = mean(cs)
+dMean = mean(ds)
+asd = sd(as)
+bsd = sd(bs)
+csd = sd(cs)
+dsd = sd(ds)
+lens = tapply(processData$Defects,processData$Method,length) 
+alen = lens[1]
+blen = lens[2]
+clen = lens[3]
+dlen = lens[4]
+netMean = (aMean+bMean+cMean+dMean)/4
+#print(bsd)
+netMean = (bsd)
+#print(netMean)
+totsd=0
+for(i in 1:numSimu)
+{
+  simData = processData
+  aSim = rpois(n=alen,netMean)
+  bSim = rpois(blen,netMean)
+  cSim = rpois(clen,netMean)
+  dSim = rpois(dlen,netMean)
+  totsd=totsd+(sd(aSim))
+  simData$Defects[simData$Method=='A']=aSim
+  simData$Defects[simData$Method=='B']=bSim
+  simData$Defects[simData$Method=='C']=cSim
+  simData$Defects[simData$Method=='D']=dSim
+  result = aov(Defects~Method,data=simData)
+  store = summary(result)
+  pval = store[[1]][["Pr(>F)"]][1]
+  if(pval<=0.05)
+  {
+    results[i]=1
+  }
+  else
+  {
+    results[i]=0
+  }
+  
+}
+#print(totsd/numSimu)
+print(mean(results))
+```
+We can see, that despite drawing from a poisson distribution, we still have some validity in the type I error of our F-test as it it quite close to 0.05. However, there is a bit of an issue here as I was unable to provide each population with their respective sample variance due to how the poisson distribution is structured. However, I assumed despite these the poisson distribution was the best fit.
+
+There are concerns still about the variance, as the F-test assumes equal variance, which we have incorporated into our distribution, but may not necessarily be true for the underlying population. Our sample SDs seem to indicate this, but it could have been one bad sample. As a result, we decided to stick with the closeness of our simulation here to accurately reflect the validity of our F-test.
+
+Overall, given all these facts and simulations, We believe the F-test is still an appropriate test for this study.
+
+I will note that many of the members studied different types of distributions, including Normal and exponential, and found some conflicting results which may indicate there is some more concern here to be had. However, to avoid being too verbose, the work is left out and you are encouraged to ask members questions about our reservations and thoughts on the matter.
