@@ -9,30 +9,131 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r setup}
+```{r setup2}
+require('ggpubr')
 cellData = read.csv("cells.csv")
 salesData = read.csv("Sales.csv")
 ```
 
+##Problem Set 1
+
+
+###Problem 1.1
 ```{r prob1.1}
 fTest = aov(count1~factor(dose),data=cellData)
 print(summary(fTest))
 ```
 
-We can see that there is some difference between the means of their post treatment cell count. Furhter, due to the non-observational nature of this study, we can conclude that it is in fact the level of dosage that is impacting this difference
+We can see that there is a significant difference between the means of their post treatment cell count. Further, due to the non-observational nature of this study, we can conclude that it is in fact the level of dosage that is impacting this difference
 
+###Problem 1.2
 ```{r prob1.2}
 flmTest = lm(count1~dose,data=cellData)
 print(summary(flmTest))
 ```
 
-Again, we can see that the dose is a significant parameter in our regression, and in further detail, tells us there is a positive linear relationship between post treament cell count and doseage. This follows in accordancy with our anova test. In more concrete terms, our linear regression model states that for every unit change in dose, we expect to seea 5.732 mean increase in our cell count.
+Again, we can see that the dose is a significant parameter in our regression, and in further detail, tells us there is a positive linear relationship between post treatment cell count and dosage. This follows in accordance with our anova test. In more concrete terms, our linear regression model states that for every unit change in dose, we expect to see a 5.732 mean increase in our cell count.
 
+###Problem 1.3
 ```{r prob1.3}
+#maybe use indicator random variables here?
 fwsTest = aov(count1~factor(dose)+factor(sex),data=cellData)
 print(summary(fwsTest))
 flmwsTest = lm(count1~dose+sex,data=cellData)
 print(summary(flmwsTest))
 ```
 
-According to both results, sex has no significane when presented at the same time as our doseage level, despite the lack of intereaction listed. However, we do see our p-value decrease slightly, in both cases, meaning that some variation was explained by the sex regardless of its lack of significance. I will note this change is only slight.
+According to both results, sex has no significance when presented at the same time as our dosage level, despite the lack of interaction included in the model. However, we do see our p-value decrease slightly in both cases, meaning that some variation was explained by the sex regardless of its lack of significance. I will note this change is only slight.
+
+###Problem 1.4
+```{r prob1.4}
+#also maybe use indicators here?
+fwsITest = aov(count1~factor(dose)*factor(sex),data=cellData)
+print(summary(fwsITest))
+flmwsITest = lm(count1~dose+sex+dose:sex,data=cellData)
+print(summary(flmwsITest))
+plot(count1 ~ dose, data=cellData)
+points(cellData$dose[cellData$sex==0],cellData$count1[cellData$sex==0],pch=1,col=2)
+points(cellData$dose[cellData$sex==1],cellData$count1[cellData$sex==1],pch=2,col=4)
+abline(lm(count1 ~ dose, data = cellData, subset=(sex==0)),lty=1,col=2)
+abline(lm(count1 ~ dose, data = cellData, subset=(sex==1)),lty=2,col=4)
+legend("topleft",c("M","F"),pch=1:2,lty=1:2,col=c(2,4))
+
+```
+
+According to both the Anova and regression model, there is no clear interaction between the dosage between males and females. We can further see this through the parallel lines produced by plotting their regressions.It goes to show that our coefficient of dose for both males and females is roughly the same.
+
+##Problem Set 2
+
+###Problem 2.1a
+```{r prob2.1a,warning=F}
+par(mfrow=c(1,2))
+ggscatter(salesData, x = "LAST_SALE_PRICE", y = "SQFT", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "last sale price", ylab = "sqft")
+```
+We can see a strong positive linear trend, shown by the very low p-value and positive person correlation coefficient expressed by R
+
+###Problem 2.1b
+```{r prob2.1b,warning=F}
+ggscatter(salesData, x = "LAST_SALE_PRICE", y = "LOT_SIZE", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "last sale price", ylab = "LOT_SIZE")
+```
+
+Again, we see a positive trend between last sale price and lot size, indicated by the low p-value and the positive correlation, but only slight, general increase in last sale price with increasing lot size. We do see some outliers that we may want to keep our eye on
+##Problem 2.1c
+```{r prob2.1c,warning=F}
+ggscatter(salesData, x = "LAST_SALE_PRICE", y = "BEDS", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "last sale price", ylab = "Number of Beds")
+```
+
+According to our R value and p-value, we can see this factor of number of beds is in fact significant again with a positive correlation. However, I am slightly concerned as the relationship doesn't seem clearly linear pictorially. It may be that most beds are 5 or less and the higher end, if filled out more, would show no true relationship. Just a thought.
+###Problem 2.1d
+```{r prob2.1d,warning=F}
+ggscatter(salesData, x = "LAST_SALE_PRICE", y = "BATHS", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "last sale price", ylab = "Number of Baths")
+```
+
+Similar to the previous plots, Baths seems to have a positive strong correlation with last sale price. Unlike the previous scatter between number of beds and sale price, I am more confident in this relationship pictorially.
+
+###Problem2.2
+```{r prob2.2}
+sqftvsprice = lm(LAST_SALE_PRICE~SQFT,salesData)
+print(summary(sqftvsprice))
+spacevsprice = lm(LAST_SALE_PRICE~LOT_SIZE,salesData)
+print(summary(spacevsprice))
+bedsvsprice = lm(LAST_SALE_PRICE~BEDS,salesData)
+print(summary(bedsvsprice))
+bathsvsprice = lm(LAST_SALE_PRICE~BATHS,salesData)
+print(summary(bathsvsprice))
+```
+
+Clearly, separately, each factor is clearly significant with sales price, even though our R-squared values are quite varied, showing some clearly describe much more of the variance within our data than others. As a sanity check, we can easily see that the $R^2$ values are exactly the correlation values found before, squared.
+
+* Accordingly,
+    + for each increase by 1 square foot in our property, we see an average increase of last sales price by 340$
+    + for each increase by 1 square foot in our lot size, we see an average increase of last sales price by 12$
+    + for each increase by 1 bath in our property, we see an average increase of last sales price by 172332$
+    + for each increase by 1 bathroom in our property, we see an average increase of last sales price by 305,628$
+
+
+###Problem 2.3
+```{r prob2.3}
+togetherlm = lm(LAST_SALE_PRICE~BEDS+BATHS+SQFT+LOT_SIZE,data=salesData)
+print(summary(togetherlm))
+#create bar plot of R values
+```
+
+Accordingly, we can see that our R-squared has gone up, as to be expected for adding more parameters to our linear model. What is encouraging is to see the adjusted R-squared is also the highest of all our other models. This is explained by the fact that despite taking into account all four factors, they each are still significant. We do note that the LOT_SIZE predictor has lost some significance, but not enough to not be considered significant under that 0.01 significance level. 
+
+SQFT and BATHS remain both positive parameter values, in particular, SQFT has remained pretty close to its initial value from its independent model, while BATHS has somewhat decreased, but is still positive. However, quite surprisingly, we see that BEDS and LOT_SIZE have become negative parameters rather than the positive parameters they were on their own. It is interesting to see such a relationship between our parameters when considered all together.
+
+
+
