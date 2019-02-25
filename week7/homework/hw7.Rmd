@@ -1,0 +1,135 @@
+---
+title: "Homework 7"
+author: "Alexander Van Roijen"
+date: "February 23, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup2}
+cellData = read.csv('cells.csv')
+salesData = read.csv('Sales.csv')
+```
+
+##Problem 1
+
+```{r prob1.1}
+basecelllm = lm(count1~dose+sex+age+count0,cellData)
+print(summary(basecelllm))
+```
+
+Clearly, we can see from our model that with adjustment for age, sex, and pre treatment cell count, dose is still significant in the model. Directly, we will say that according to our model, if we hold pretreatment cell count, age, and sex constant, we expect to see dose to make a mean difference in post treatment cell count by 5.8 per unit difference in does.
+
+Now lets test a null hypothesis on $\beta_{dose} = 0$.
+
+```{r prob1.2}
+print(names(summary(basecelllm)))
+hold = summary(basecelllm)
+wiw = coef(hold)[, 2]
+doseCoef = coef(hold)[, 1][2]
+dosestder=wiw[2]
+zval = abs(doseCoef/dosestder)
+n=nrow(cellData)
+p = 2*(1-pt(zval,df=n-5))
+print(p)
+```
+
+According to this null hypothesis test, we can say with good confidence that we can reject the null hypothesis that dose has no effect on post treatment cell count even with adjustment on sex age and pretreatment cell count. 
+
+However, now we must consider if our data handles the assumptions of independence, normaliy, linearity, and constant variance.
+For now, we will consider the independence assumptions handled, but this isnt always garunteed.
+
+```{r prob1.3}
+resids = hold$residuals
+plot(resids~as.numeric(dose),data=cellData)
+plot(basecelllm)
+hist(resids)
+```
+
+From the plots, we have some concern. From the dose versus residual plots, we have some concern as it appears there may be some sign of nonconstant variance. From plotting the fitted values against standardized residuals, we see a positive relationship between mean and variance. Further, from both our qqplot and our residuals histogram, we see a left skew, showing a quite non-normal distribution.
+
+As it stands, perhaps some transformations could be used to solve this issue, but that isnt the objective of this problem. Currently, I would say, most importantly, the lack of constant variance paired with lack of normality makes our inferences from the model invalid.
+
+##Problem 2
+
+
+To begin with, we clearly need to hold some level of adjustment for the other factors of interest when determining the impact of another bathroom. Further, we will first develop an answer at the overall level, and then delve into the subets of houses below and above average size.
+
+```{r prob2.1}
+overallSLM=lm(LAST_SALE_PRICE~BATHS+SQFT+LOT_SIZE+BEDS,salesData)
+hold = summary(overallSLM)
+print(hold)
+```
+
+We analyzed this earlier, but again, we see everything is significant in this model. As it stands, we could say that for every additilonal bathroom added to a house, assuming the size, lot_size, and beds remain constant, we would see an increase in mean housevalue of approximatley 87000$.
+
+Now lets quickly take a look to see if the assumptions are met.
+
+```{r prob2.2}
+hist(hold$residuals)
+plot(overallSLM)
+print(length(salesData$BATHS))
+print(length(hold$residuals))
+
+```
+
+Clearly,we can see that the normality isnt too well met, and that there seems to be a non constant variance. However, perhaps subsetting the data will solve this issue.
+
+```{r prob2.3}
+meansize = mean(salesData$SQFT,na.rm = TRUE)
+#print(sum(is.na(salesData$SQFT)))
+#print(meansize)
+belowAvg = subset(salesData,SQFT<=meansize)
+aboveAvg =  subset(salesData,SQFT>meansize)
+#print(length(belowAvg$LAST_SALE_PRICE))
+#print(length(aboveAvg$LAST_SALE_PRICE))
+#print(length(salesData$LAST_SALE_PRICE))
+#these dont add up, should i be concerned?
+blm=lm(LAST_SALE_PRICE~BATHS+SQFT+LOT_SIZE+BEDS,belowAvg)
+alm=lm(LAST_SALE_PRICE~BATHS+SQFT+LOT_SIZE+BEDS,aboveAvg)
+bsum = summary(blm)
+asum = summary(alm)
+print(bsum)
+print(asum)
+
+```
+
+Now when we consider the two models seperately, we see baths are still highly significant with different values for their coefficients. For houses with a below average size, we would expect, with lot size, beds, and sqft held constant, to see an average household value increase of 40000\$ per bath inserted into the house. Meanwhile for above average sized houses, we would expect to see a 102 thousand dollar mean value increase per bathroom added.
+
+However, there is another question to be asked here. Is the house increasing or remaining the same in size during the addition of this new bathroom? 
+
+Thus, I would ask the owner if their addition will be used in vacant space already within the house, or require additional space in the house to be constructed. In the case of stagnant house sqft size, my answer would remain the same. However, if there was an increase, I would ask for an estimate and give a combined answer. I would say, for below average houses, the value would increase by, assuming all else held constant, by 121210\$ for the bathroom and $406.8 \$ * sqft$ where $sqft$ is the approximate increase in size of the house.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

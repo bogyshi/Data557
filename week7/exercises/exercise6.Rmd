@@ -1,0 +1,70 @@
+---
+title: "exercise6"
+author: "Alexander Van Roijen"
+date: "February 20, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r inFiles}
+require('ggpubr')
+fevData = read.csv('fev.csv')
+processData = read.csv('pilot.csv')
+```
+## Question 1
+
+```{r 1.1}
+jAge = lm(fev~age,data=fevData)
+print(summary(jAge))
+jHeight = lm(fev~ht,data=fevData)
+print(summary(jHeight))
+```
+
+According to our seperate simple linear regressions, both age and height are statistically significant with very low p values.
+We note that height has a higher R value and thus explains more of the variance of the model on its own compared to age.
+
+```{r prob1.2}
+combined = lm(fev~ht+age,data=fevData)
+print(summary(combined))
+```
+
+Combined, all predictors are significant, and the R squared values are quite high. The coefficients themselves have decreased in value, but are both still positive.
+
+```{r prob1.3}
+agevht= lm(age~ht,data=fevData)
+n=length(fevData$fev)
+X=cbind(rep(1,n),fevData$age,fevData$ht)
+print(solve(t(X)%*%X))
+print(summary(agevht))
+ggscatter(fevData, x = "age", y = "ht", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "age", ylab = "ht")
+```
+
+we see a strong correlation between age and height, which is to be expected. This tied with the non zero value for the inverse matrix indicates some level of correlation between our predictors, yet they still both benefit our model. This also agrees with the simple linear regression against age with ht as the predictor.
+
+```{r prob2.1}
+slm = summary(lm(X~x,processData))
+print(slm)
+print(names(slm))
+print(slm$sigma)
+residualVariance = slm$sigma
+meanTemp = mean(processData$x)
+holdSeries = processData$x-meanTemp
+denom =sqrt(sum(holdSeries**2))*5
+print(sqrt(residualVariance)/denom)
+print(5*length(processData$X))
+```
+
+Sample size of 80? please help
+
+For problem 2.2, do a 50 50 split , where half are at the minimum, and half are at the maximum, so that our SE(Beta hat) is minimized.
+Note, this only holds if there is a linear relationship within our temperature, otherwise we wont be sure, so add some in the middle to check the shape.
+
+
+
+
