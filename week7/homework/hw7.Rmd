@@ -2,7 +2,9 @@
 title: "Homework 7"
 author: "Alexander Van Roijen"
 date: "February 23, 2019"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -97,7 +99,7 @@ print(asum)
 
 ```
 
-Now when we consider the two models seperately, we see baths are still highly significant with different values for their coefficients. For houses with a below average size, we would expect, with lot size, beds, and sqft held constant, to see an average household value increase of 40000\$ per bath inserted into the house. Meanwhile for above average sized houses, we would expect to see a 102 thousand dollar mean value increase per bathroom added.
+Now when we consider the two models seperately, we see baths are still highly significant with different values for their coefficients. For houses with a below average size, we would expect, with lot size, beds, and sqft held constant, to see an average household value increase of 40,000\$ per bath inserted into the house. Meanwhile for above average sized houses, we would expect to see a 120 thousand dollar mean value increase per bathroom added.
 
 However, there is another question to be asked here. Is the house increasing or remaining the same in size during the addition of this new bathroom? 
 

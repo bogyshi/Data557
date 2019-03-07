@@ -1,0 +1,36 @@
+---
+title: "exercise7"
+author: "Alexander Van Roijen"
+date: "February 27, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library('sandwich')
+```
+
+```{r setup2}
+fevData = read.csv('fev.csv')
+```
+
+```{r prob1.1}
+fevlm = lm(smoke~age*male,fevData)
+sumfevlm = summary(fevlm)
+print(sumfevlm)
+plot(fevlm)
+rbfevse = vcovHC(fevlm)
+robustses <- sqrt(diag(rbfevse))
+print(robustses)
+```
+
+despite my lack of understanding of the assumptions, we can see a somewhat close comparison between the std errors of our lm and the robust SEs calculated by the sandwich package. perhaps a bit high for age and the interaction between age and male. RESIDUAL PLOTS DIAGNOSTICS FOR BINARY RESPONSES ARE MEANINGLESS. AS OUR ASSUMPTIONS ARE BY DEFAULT NOT TRUE, cant be normal, not linear ... BUT we can still get valid inference with a large enough sample size and robust SEs
+
+```{r prob1.2}
+logitfevmodel = glm(smoke ~ age*male, data=fevData, family=binomial)
+sumlogfev = summary(logitfevmodel)
+print(sumlogfev)
+
+```
+
+We can see that age is still significant, but the interaction between age and male is no longer significant. The sign of age remains the same.

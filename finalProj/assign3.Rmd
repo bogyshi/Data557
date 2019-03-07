@@ -1,0 +1,40 @@
+---
+title: "Assignment 3"
+author: "Alexander Van Roijen, Sam Miller, Vivek Kumar, Jack Mahoney"
+date: "March 2, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+lowMedsplit = 65123
+medHighSplit = 80915
+allData = read.csv('/home/bdvr/Documents/GitHub/Data557/finalProj/data/Filtered Data.csv')
+print(names(allData))
+hist(allData$Median.Household.Income)
+lowIncome = allData[allData$Median.Household.Income<=lowMedsplit,]
+medIncome = allData[allData$Median.Household.Income>lowMedsplit & allData$Median.Household.Income<=medHighSplit,]
+highIncome = allData[allData$Median.Household.Income>medHighSplit,]
+
+```
+
+##Normality Checks
+
+```{r histograms,echo=FALSE}
+
+par(mfrow=c(2,3))
+par(oma=c(0,0,2,0))
+hist(lowIncome$Dogs.Cats,main = "Low Income of Dogs/Cats",xlab = 'dogs/cats ratio',breaks=c(0,0.8,1.6,2.4,3.0,3.75,4.5))
+hist(medIncome$Dogs.Cats,main = "Medium Income of Dogs/Cats",xlab = 'dogs/cats ratio',breaks=c(0,0.8,1.6,2.4,3.0,3.75,4.5))
+hist(highIncome$Dogs.Cats,main = "High Income of Dogs/Cats",xlab = 'dogs/cats ratio',breaks=c(0,1.0,1.5,2.0,2.5,3.0,3.5,5))
+
+```
+
+```{r qqplots, echo=FALSE}
+par(mfrow=c(2,3))
+qqnorm(lowIncome$Dogs.Cats,main = "Normal QQ Plot of Low Inc.")
+qqline(lowIncome$Dogs.Cats)
+qqnorm(medIncome$Dogs.Cats,main = "Normal QQ Plot of Medium Inc.")
+qqline(medIncome$Dogs.Cats)
+qqnorm(highIncome$Dogs.Cats,main = "Normal QQ Plot of High Inc.")
+qqline(highIncome$Dogs.Cats)
+```

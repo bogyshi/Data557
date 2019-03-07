@@ -1,0 +1,145 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+---
+title: "Homework 8"
+author: "Alexander Van Roijen"
+date: "March 1, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup2, echo=F,warning=F}
+require("sandwich")
+cellData = read.csv('cells.csv')
+teethData = read.csv('Teeth.csv')
+#first we figure out how to do the poisson regression, and then recall that the coefficients, if not exponentiated, is the difference in log mean per unit difference of our parameter. However, when exponentiated, it is the ratio between mean number of the response per unit difference of our variable.
+```
+
+```{r prob1.a}
+
+poisRes= glm(count1 ~ dose +sex +age +count0, family="poisson", data=cellData)
+psum = summary(poisRes)
+print(psum)
+```
+a) The above holds the coefficient table and the summary for the poisson regression on the cell data with adjustment for the required factors 
+
+```{r prob1.b/c}
+print(exp(psum$coefficients[2,1]))
+```
+b/c) Accordingly, dose, which has evidence of significance through its low p value, when we exponentiate the coefficient represents the ratio of the mean post cell counts per unit difference in dose. Thus the ratio of the mean post cell counts, holding everything else constant, is 1.028 per unit increase in dosage.
+
+```{r prob1.d}
+v <- vcovHC(poisRes)
+robust.se <- sqrt(diag(v))
+round(cbind(psum$coef,robust.se),4)
+```
+
+d) Now looking at the the robust standard errors, we can see there are quite significant departures, showing that we probably dont satisfy the assumptions of the mean variance model of poisson regression. It appears that accordingly, it may be wise to use robust SE instead of our normal SEs. However, as we will see below, there is a  small sample size, which does not bode well for robust SEs. This makes it a bit of a treacherous path. Also note that they are quite larger than our previously calculated standard errors. Now lets examine the assumptions
+
+```{r prob1.3ef}
+print(length(cellData$id))
+hist(cellData$count1)
+par(mfrow=c(1,4))
+plot(poisRes)
+print(c(mean(cellData$count1),var(cellData$count1)))
+```
+
+e/f) We will assume that the independence assumption is met, however this isnt always guaranteed. Now, we can see that our residuals show a non-constant variance, which agrees with the usage of robust SEs. Comparing to our results from homework 7, our other predictors became significant along with dose. However, the much lower than robust standard errors likely caused part of this. The reason for this may be to a lack of good fit of poisson regression to this data. First, we note a rather small sample size of 40, along with the fact that the $Var(Y) \ne \mu$. It is noteworthy that they did both state that dosage had a positive relationship with the post treatment cell count.
+
+```{r prob2.1}
+poisRes= glm(count1 ~ factor(dose) +sex +age +count0, family="poisson", data=cellData)
+psum = summary(poisRes)
+print(psum)
+print(exp(psum$coefficients[1:3,1]))
+```
+
+a/b)We can see that the factor of 0 is our reference point, and the coefficients for factor of 10 and 100 are calculated with respect to it. Now interpreting the exponentiated coefficients, holding everything else constant, the baseline for factor(0) is a 91 ratio of mean post cell count. Relative to it, the exponentiated coefficients for factor(dose) 10 and 100 have a multiplicative factor compared to factor(0) of 0.1 and 14.57, which represents the ratio of mean post treatment cell count per unit increase in that respective level of dosage. However, factor(dose) 10 doesn't appear to be significant in this model.
+
+```{r prob3.1}
+copyTeeth = teethData
+copyTeeth$newExtr = as.integer(as.logical(teethData$EXTR))
+teethResB = (summary(glm(newExtr~PDALL+AGE+GENDER, data=copyTeeth, family=binomial)))
+print(teethResB)
+teethResP = (summary(glm(newExtr~PDALL+AGE+GENDER, data=copyTeeth, family=poisson)))
+print(teethResP)
+pdallL = (teethResB$coefficients[2,1])
+pdExp = exp(pdallL)
+print(pdExp)
+ageCoef = (teethResB$coefficients[3,1])
+expACoef = exp(ageCoef)
+print(expACoef)
+poisData = (teethResP$coefficients[1:2,1])
+pdpExp = exp(poisData)
+print(pdpExp)
+
+```
+
+a)Looking at the results of our logistic regression model, we see that PDALL and AGE are significant and we reject the null hypothesis that they have no impact on whether or not a tooth is extracted.
+
+b)Interpreting the exponentiated coefficients for the model, we see for the logistic regression, the ratio of the odds of a patient having a tooth extracted is 4.27 per unit increase in PDALL assuming all else held constant. Meanwhile, for age, the exponentiated coefficient indicates the ratio of the odds of a patient having a tooth extracted as 1.031 per unit increase in age assuming all else held constant.
+
+c)Looking at the results of the Poisson regression, we can see that only PDALL is significant in this model.
+
+d) Finally for the Poisson model, the exponentiated coefficient of 2.5 for PDALL indicates a rate ratio of 2.5 per unit increase in the PDALL term assuming all other terms held constant. Note the baseline ratio of 0.0022. I do not bother interpreting the other parameters as they are not significant.
+
+e) Overall, the models give similar results. They both indicate a positive relationship between the odds of a patient having a tooth extracted and the PDALL term. However, they disagree on the significance of the age relationship, but agree on its signage.
+
+##Problem 4, bonus
+
+```{r prob4}
+minXs = rep(10,25)
+maxXs = rep(40,25)
+allData = c(minXs,maxXs)
+meanX = mean(allData)
+print(meanX)
+print(sum((allData-meanX)**2))
+```
+
+Now, we know that our assumptions of linearity, constant variance, and independence are met.
+
+We further understand that the formula for $SE(\hat{\beta}) = \frac{\hat{\sigma}}{\sqrt{\sum^{n=50}_{i=1}(X_i-\bar{X})^2}}$
+
+Knowing this, along with out assumptions, we can see that our $\hat{\sigma}$ and $n$ are constant. Thus, the only thing that can change in our calculation is the value of $\sqrt{\sum^{n=50}_{i=1}(X_i-\bar{X})^2}$. Further, given the range $10 \le X_i \le 40$, we must ensure our values satisfy this requirement.
+
+We can see intuitively, that we must maximize that square root of a sum to maximize the denominator and ultimately minimize the SE.
+
+Thus, lets examine what happens to the sum of squared differences (ignoring the square root as it is meaningless to our goal) starting with all X equal, which means $\bar{X} = X_i$.
+
+It is obvious that the derivative of $\frac{d}{dX_i}X_i = 1$, and $\frac{d}{dX_i}\bar{X} = \frac{1}{n}$. Now, consider moving all $X_i$ in our sample. We will thus get for every one unit increase in all $X_i$ a one unit increase in $\bar{X}$. This obviously doesn't help, as our sum of squared differences is still zero! Effectively, we want the differences between the sum of the respective slopes to be maximized, which can be represented by the following difference $i - \frac{i^2}{n} = \frac{i(n-i)}{n}$. Where i is the number of points we are moving, and n is the sample size.
+
+Taking the derivative with respect to i we get $\frac{(n-i)}{n} + \frac{-i}{n} = \frac{n-2i}{n}$. 
+
+Taking the second derivative we get $\frac{-2}{n}$ which implies our function is concave down, meaning we will find a maximum at the critical point. 
+
+Finding the critical point is done by setting our first derivative to zero and solving. So we get $\frac{n-2i}{n} = 0 => 2i = n > i = \frac{n}{2}$
+
+This means that to maximize the difference, we should move half the points by one unit, which means to maximize our overall sum of squared differences, we want to move half of the points as much as possible. so, thus in our example, the minimized standard error of the least squares estimate is achieved by setting half of our units at the minimum, 10, and the other half at maximum, 40.
+
+The graphics below demonstrate the curvature, and reflect the results we achieved.
+
+```{r prob4.3}
+startMax = 40
+results = numeric()
+vals = numeric()
+counter = 1
+while(startMax>=10)
+{
+  minXs = rep(10,25)
+  maxXs = rep(startMax,25)
+  allData = c(minXs,maxXs)
+  meanX = mean(allData)
+  results[counter] = sum((allData-meanX)**2)
+  vals[counter] = startMax
+  counter = counter +1
+  startMax= startMax-1
+}
+plot(x=vals,y=results)
+```
+
+This would normally continue on  if there were no bounds to either end of our range.

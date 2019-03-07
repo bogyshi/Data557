@@ -68,3 +68,6 @@ Note, this only holds if there is a linear relationship within our temperature, 
 
 
 
+TO DO PROBLEM 2.1 is to grab te SE, and note the se decreases with increasing n in inverse proportion to sqrt(n) therefore to reduce from 0.055 t 0.01 we need to increase n by a factor (0.055/0.01)^2
+
+2.2 we mentioned already about how we gotta have a wide spread of values.
